@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-surface: var(--surface);
+  
+  --color-danger: #D9383A;
+  --color-success: #2E7D32;
+  --color-warning: #F59E0B;
+}
+
+:root {
+  --primary: #FF6B00;
+  --secondary: #1A365D;
+  --background: #F9FAFB;
+  --surface: #FFFFFF;
+  --text: #11181C;
+}
+
+/* Hỗ trợ chế độ tối qua class .dark */
+.dark {
+  --primary: #FF7A1A;
+  --secondary: #2A4365;
+  --background: #121212;
+  --surface: #1E1E1E;
+  --text: #ECEDEE;
+}
+
+/* Hỗ trợ chế độ tối qua media query hệ thống */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --primary: #FF7A1A;
+    --secondary: #2A4365;
+    --background: #121212;
+    --surface: #1E1E1E;
+    --text: #ECEDEE;
+  }
+}

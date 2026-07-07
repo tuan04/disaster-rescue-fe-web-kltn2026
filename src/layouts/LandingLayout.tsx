@@ -12,12 +12,12 @@ export default function LandingLayout() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-[var(--background)] text-[var(--text)]">
+    <div className="flex flex-col min-h-screen bg-(--background) text-(--text)">
       {/* Sticky Header with Glassmorphism */}
       <header className="sticky top-0 z-50 w-full border-b border-gray-200/50 dark:border-gray-800/50 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-md transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 text-[var(--primary)] font-bold text-xl hover:opacity-90 transition-opacity">
+          <Link to="/" className="flex items-center gap-2 text-(--primary) font-bold text-xl hover:opacity-90 transition-opacity">
             <AlertTriangle className="h-6 w-6 stroke-[2.5]" />
             <span>SOS Rescue</span>
           </Link>
@@ -30,8 +30,8 @@ export default function LandingLayout() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-[var(--primary)] ${isActive
-                    ? 'text-[var(--primary)] font-semibold'
+                  className={`flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-(--primary) ${isActive
+                    ? 'text-(--primary) font-semibold'
                     : 'text-gray-600 dark:text-gray-300'
                     }`}
                 >
@@ -46,7 +46,7 @@ export default function LandingLayout() {
           <div className="flex items-center gap-3">
             <Link
               to="/"
-              className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-orange-600 dark:hover:bg-orange-500 shadow-sm transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+              className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-(--primary) rounded-lg hover:bg-orange-600 dark:hover:bg-orange-500 shadow-sm transition-all transform hover:-translate-y-0.5 active:translate-y-0"
             >
               Đăng nhập
             </Link>
@@ -65,7 +65,7 @@ export default function LandingLayout() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Brand Info */}
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-[var(--primary)] font-bold text-lg">
+              <div className="flex items-center gap-2 text-(--primary) font-bold text-lg">
                 <AlertTriangle className="h-5 w-5" />
                 <span>SOS Rescue System</span>
               </div>
@@ -80,7 +80,7 @@ export default function LandingLayout() {
               <ul className="space-y-2">
                 {navItems.map((item) => (
                   <li key={item.path}>
-                    <Link to={item.path} className="text-sm text-gray-500 dark:text-gray-400 hover:text-[var(--primary)] transition-colors">
+                    <Link to={item.path} className="text-sm text-gray-500 dark:text-gray-400 hover:text-(--primary) transition-colors">
                       {item.label}
                     </Link>
                   </li>
@@ -92,7 +92,7 @@ export default function LandingLayout() {
             <div>
               <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 uppercase tracking-wider mb-4">Liên hệ hỗ trợ</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Đường dây nóng hỗ trợ khẩn cấp: <span className="font-bold text-[var(--danger)]">112</span> hoặc <span className="font-bold text-[var(--danger)]">114</span>
+                Đường dây nóng hỗ trợ khẩn cấp: <span className="font-bold text-(--danger)">112</span> hoặc <span className="font-bold text-(--danger)">114</span>
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                 Email: support@sosrescue.gov.vn

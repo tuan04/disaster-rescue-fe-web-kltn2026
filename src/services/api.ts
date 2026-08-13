@@ -19,7 +19,7 @@ export class ApiError extends Error {
 }
 
 const api: AxiosInstance = axios.create({
-    baseURL: (import.meta.env.VITE_API_URL as string),
+    baseURL: (import.meta.env.VITE_BACKEND_URL as string),
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',

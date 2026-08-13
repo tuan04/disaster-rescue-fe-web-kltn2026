@@ -32,15 +32,6 @@
   color-scheme: light;
 }
 
-.light {
-  --primary: #ff6b00;
-  --secondary: #1a365d;
-  --background: #f9fafb;
-  --surface: #ffffff;
-  --text: #11181c;
-  color-scheme: light;
-}
-
 /* Hỗ trợ chế độ tối qua class .dark */
 .dark {
   --primary: #ff7a1a;

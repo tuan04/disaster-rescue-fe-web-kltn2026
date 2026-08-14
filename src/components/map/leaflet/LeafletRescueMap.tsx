@@ -1,7 +1,7 @@
 import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 
-import PointDetail from "@/components/ui/PointDetail";
+import PointDetail from "@/components/ui/map/PointDetail";
 import type { PointType } from "@/types/dispatch";
 import type { RescueMapProps } from "../RescueMap";
 import { getHazardIconDetails } from "../hazardIconMeta";

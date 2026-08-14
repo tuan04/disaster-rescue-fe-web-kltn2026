@@ -1,7 +1,13 @@
+import Footer from "@/components/ui/common/Footer";
+import Header from "@/components/ui/common/Header";
+import { Outlet } from "react-router-dom";
+
 export default function LandingLayout() {
   return (
-    <div className="flex flex-col min-h-screen bg-(--background) text-(--text)">
-      
-    </div>
+    <main>
+      <Header />
+      <Outlet />
+      <Footer />
+    </main>
   );
 }

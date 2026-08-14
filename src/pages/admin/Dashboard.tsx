@@ -1,6 +1,12 @@
-import { Card, Col, Row, Statistic, Table, Tag, Space, Button } from 'antd';
-import { ArrowUpOutlined, AlertOutlined, SafetyOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import { FaArrowUp, FaExclamationTriangle, FaShieldAlt } from "react-icons/fa";
+import {
+  AdminButton,
+  AdminCard,
+  DataTable,
+  type DataTableColumn,
+  StatCard,
+  StatusTag,
+} from "@/components/ui/admin/AdminUi";
 
 interface RescueRecord {
   key: string;
@@ -8,167 +14,160 @@ interface RescueRecord {
   sender: string;
   phone: string;
   location: string;
-  severity: 'danger' | 'warning' | 'normal';
-  status: 'pending' | 'processing' | 'completed';
+  severity: "danger" | "warning" | "normal";
+  status: "pending" | "processing" | "completed";
   time: string;
 }
 
 const mockData: RescueRecord[] = [
   {
-    key: '1',
-    id: 'SOS-0045',
-    sender: 'Nguyễn Văn A',
-    phone: '0905123456',
-    location: 'Quận Liên Chiểu, Đà Nẵng',
-    severity: 'danger',
-    status: 'pending',
-    time: '14:25 - 04/07/2026',
+    key: "1",
+    id: "SOS-0045",
+    sender: "Nguyễn Văn A",
+    phone: "0905123456",
+    location: "Quận Liên Chiểu, Đà Nẵng",
+    severity: "danger",
+    status: "pending",
+    time: "14:25 - 04/07/2026",
   },
   {
-    key: '2',
-    id: 'SOS-0044',
-    sender: 'Trần Thị B',
-    phone: '0914987654',
-    location: 'Huyện Hòa Vang, Đà Nẵng',
-    severity: 'warning',
-    status: 'processing',
-    time: '13:10 - 04/07/2026',
+    key: "2",
+    id: "SOS-0044",
+    sender: "Trần Thị B",
+    phone: "0914987654",
+    location: "Huyện Hòa Vang, Đà Nẵng",
+    severity: "warning",
+    status: "processing",
+    time: "13:10 - 04/07/2026",
   },
   {
-    key: '3',
-    id: 'SOS-0043',
-    sender: 'Phạm Minh C',
-    phone: '0935555666',
-    location: 'Quận Cẩm Lệ, Đà Nẵng',
-    severity: 'normal',
-    status: 'completed',
-    time: '10:05 - 04/07/2026',
+    key: "3",
+    id: "SOS-0043",
+    sender: "Phạm Minh C",
+    phone: "0935555666",
+    location: "Quận Cẩm Lệ, Đà Nẵng",
+    severity: "normal",
+    status: "completed",
+    time: "10:05 - 04/07/2026",
   },
 ];
 
+const severityMeta = {
+  danger: { tone: "danger" as const, label: "Nguy cấp" },
+  warning: { tone: "warning" as const, label: "Cần chú ý" },
+  normal: { tone: "info" as const, label: "Thường" },
+};
+
+const statusMeta = {
+  pending: { tone: "default" as const, label: "Chờ xử lý" },
+  processing: { tone: "info" as const, label: "Đang cứu nạn" },
+  completed: { tone: "success" as const, label: "Hoàn thành" },
+};
+
 export default function Dashboard() {
-  const columns: ColumnsType<RescueRecord> = [
+  const columns: DataTableColumn<RescueRecord>[] = [
     {
-      title: 'Mã số',
-      dataIndex: 'id',
-      key: 'id',
-      render: (text) => <span style={{ fontWeight: 'bold' }}>{text}</span>,
+      key: "id",
+      title: "Mã số",
+      render: (record) => <span className="font-bold text-text">{record.id}</span>,
     },
     {
-      title: 'Người gửi',
-      dataIndex: 'sender',
-      key: 'sender',
+      key: "sender",
+      title: "Người gửi",
+      render: (record) => record.sender,
     },
     {
-      title: 'Số điện thoại',
-      dataIndex: 'phone',
-      key: 'phone',
+      key: "phone",
+      title: "Số điện thoại",
+      render: (record) => record.phone,
     },
     {
-      title: 'Khu vực',
-      dataIndex: 'location',
-      key: 'location',
+      key: "location",
+      title: "Khu vực",
+      render: (record) => record.location,
     },
     {
-      title: 'Mức độ',
-      dataIndex: 'severity',
-      key: 'severity',
-      render: (severity: string) => {
-        let color = 'blue';
-        let text = 'Thường';
-        if (severity === 'danger') {
-          color = 'red';
-          text = 'Nguy cấp';
-        } else if (severity === 'warning') {
-          color = 'gold';
-          text = 'Cần chú ý';
-        }
-        return <Tag color={color}>{text}</Tag>;
+      key: "severity",
+      title: "Mức độ",
+      render: (record) => {
+        const severity = severityMeta[record.severity];
+        return <StatusTag tone={severity.tone}>{severity.label}</StatusTag>;
       },
     },
     {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => {
-        let color = 'default';
-        let text = 'Chờ xử lý';
-        if (status === 'processing') {
-          color = 'processing';
-          text = 'Đang cứu nạn';
-        } else if (status === 'completed') {
-          color = 'success';
-          text = 'Hoàn thành';
-        }
-        return <Tag color={color}>{text}</Tag>;
+      key: "status",
+      title: "Trạng thái",
+      render: (record) => {
+        const status = statusMeta[record.status];
+        return <StatusTag tone={status.tone}>{status.label}</StatusTag>;
       },
     },
     {
-      title: 'Thời gian',
-      dataIndex: 'time',
-      key: 'time',
+      key: "time",
+      title: "Thời gian",
+      render: (record) => record.time,
     },
     {
-      title: 'Thao tác',
-      key: 'action',
-      render: (_, record) => (
-        <Space size="middle">
-          <Button type="link" size="small">Chi tiết</Button>
-          {record.status !== 'completed' && (
-            <Button type="primary" size="small" ghost>Cập nhật</Button>
-          )}
-        </Space>
+      key: "action",
+      title: "Thao tác",
+      render: (record) => (
+        <div className="flex items-center gap-3">
+          <AdminButton variant="link" size="sm">
+            Chi tiết
+          </AdminButton>
+          {record.status !== "completed" ? (
+            <AdminButton variant="outline" size="sm">
+              Cập nhật
+            </AdminButton>
+          ) : null}
+        </div>
       ),
     },
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+    <div className="flex flex-col gap-6">
       <div>
-        <h2 style={{ fontSize: 24, fontWeight: 'bold', margin: '0 0 8px 0' }}>Bảng quản trị hệ thống</h2>
-        <p style={{ color: '#666', margin: 0 }}>Cập nhật tình hình cứu hộ khẩn cấp trực tuyến trong khu vực.</p>
+        <h2 className="mb-2 text-title font-bold text-text">Bảng quản trị hệ thống</h2>
+        <p className="text-sm text-slate-500">
+          Cập nhật tình hình cứu hộ khẩn cấp trực tuyến trong khu vực.
+        </p>
       </div>
 
-      {/* Quick Cards */}
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={8}>
-          <Card bordered={false} style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <Statistic
-              title="Yêu cầu đang chờ"
-              value={12}
-              valueStyle={{ color: '#cf1322' }}
-              prefix={<AlertOutlined />}
-              suffix={<span style={{ fontSize: 12, color: '#cf1322', marginLeft: 8 }}><ArrowUpOutlined /> +3 mới</span>}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card bordered={false} style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <Statistic
-              title="Đang xử lý ứng cứu"
-              value={8}
-              valueStyle={{ color: '#d46b08' }}
-              prefix={<AlertOutlined spin />}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card bordered={false} style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <Statistic
-              title="Hoàn thành hôm nay"
-              value={42}
-              valueStyle={{ color: '#3f8600' }}
-              prefix={<SafetyOutlined />}
-              suffix={<span style={{ fontSize: 12, color: '#3f8600', marginLeft: 8 }}><ArrowUpOutlined /> 92%</span>}
-            />
-          </Card>
-        </Col>
-      </Row>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard
+          title="Yêu cầu đang chờ"
+          value={12}
+          tone="danger"
+          icon={<FaExclamationTriangle />}
+          suffix={
+            <span className="inline-flex items-center gap-1">
+              <FaArrowUp /> +3 mới
+            </span>
+          }
+        />
+        <StatCard
+          title="Đang xử lý ứng cứu"
+          value={8}
+          tone="warning"
+          icon={<FaExclamationTriangle />}
+        />
+        <StatCard
+          title="Hoàn thành hôm nay"
+          value={42}
+          tone="success"
+          icon={<FaShieldAlt />}
+          suffix={
+            <span className="inline-flex items-center gap-1">
+              <FaArrowUp /> 92%
+            </span>
+          }
+        />
+      </div>
 
-      {/* Table section */}
-      <Card title="Yêu cầu tiếp nhận khẩn cấp gần nhất" bordered={false} style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-        <Table columns={columns} dataSource={mockData} pagination={false} />
-      </Card>
+      <AdminCard title="Yêu cầu tiếp nhận khẩn cấp gần nhất">
+        <DataTable columns={columns} rows={mockData} />
+      </AdminCard>
     </div>
   );
 }

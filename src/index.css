@@ -1,39 +1,78 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
+  --color-background: var(--background);
   --color-surface: var(--surface);
-  
-  --color-danger: #D9383A;
-  --color-success: #2E7D32;
-  --color-warning: #F59E0B;
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+
+  --font-sans: var(--font-family-base);
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.25rem;
+  --text-body-md: 0.9375rem;
+  --text-body-md--line-height: 1.25rem;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5rem;
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.75rem;
+  --text-title-sm: 1.25rem;
+  --text-title-sm--line-height: 1.75rem;
+  --text-title-md: 1.375rem;
+  --text-title-md--line-height: 1.875rem;
+  --text-title: 1.5rem;
+  --text-title--line-height: 2rem;
+  --text-heading: 2rem;
+  --text-heading--line-height: 2.5rem;
+  --text-display: 2.5rem;
+  --text-display--line-height: 3rem;
 }
 
 :root {
-  --primary: #FF6B00;
-  --secondary: #1A365D;
-  --background: #F9FAFB;
-  --surface: #FFFFFF;
-  --text: #11181C;
+  --primary: #171d2f;
+  --secondary: #00c5d3;
+  --background: #f9fafb;
+  --surface: #ffffff;
+  --danger: #d9383a;
+  --success: #2e7d32;
+  --warning: #f59e0b;
+
+  --text: #111827;
+  --text-muted: #b6b6b6;
+
+  --font-family-base: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  color-scheme: light;
 }
 
-/* Hỗ trợ chế độ tối qua class .dark */
 .dark {
-  --primary: #FF7A1A;
-  --secondary: #2A4365;
+  --primary: #171d2f;
+  --secondary: #00c5d3;
   --background: #121212;
-  --surface: #1E1E1E;
-  --text: #ECEDEE;
+  --surface: #12183b;
+  --danger: #d9383a;
+  --success: #2e7d32;
+  --warning: #f59e0b;
+
+  --text: #ffffff;
+  --text-muted: #9ba1a6;
+
+  color-scheme: dark;
 }
 
-/* Hỗ trợ chế độ tối qua media query hệ thống */
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    --primary: #FF7A1A;
-    --secondary: #2A4365;
-    --background: #121212;
-    --surface: #1E1E1E;
-    --text: #ECEDEE;
-  }
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font-family: var(--font-family-base);
 }

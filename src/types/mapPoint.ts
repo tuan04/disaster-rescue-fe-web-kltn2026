@@ -5,10 +5,27 @@ export type HazardType =
   | "FLOOD_DEEP"
   | "POWER_LINE_DOWN";
 
-export type EmergencyLevel = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
-export type RequestStatus = "PENDING" | "ACCEPTED" | "COMPLETED" | "HIDDEN";
+export type EmergencyLevel = "LOW" | "MEDIUM" | "HIGH";
+export type RequestStatus = "PENDING" | "ACCEPTED" | "COMPLETED";
 export type RequestSource = "SOCIAL" | "APP" | "SMS";
 export type HazardStatus = "ACTIVE" | "RESOLVED" | "REJECTED";
+export type SafePointType =
+  | "EVACUATION_CENTER"
+  | "MEDICAL_STATION"
+  | "TEMPORARY_CAMP"
+  | "WATER_STATION";
+
+export interface MapPointFilterRequest {
+  pointTypes?: PointType[];
+  rescueStatuses?: RequestStatus[];
+  emergencyLevels?: EmergencyLevel[];
+  hazardStatuses?: HazardStatus[];
+  hazardTypes?: HazardType[];
+  safePointTypes?: SafePointType[];
+  fromTime?: string;
+  toTime?: string;
+}
+
 export interface BaseMapPointRes {
   id: string; // UUID dạng chuỗi
   pointType: PointType;
@@ -65,9 +82,8 @@ export interface SosDetailRes {
 export interface SafePointDetailRes {
   id: string;
   name: string;
-  maxCapacity: number;
-  currentPeople: number;
   contactPhone: string;
+  safePointType: SafePointType;
   isActive: boolean;
 }
 
@@ -82,6 +98,8 @@ interface BaseMapPointDetailRes {
   id: string;
   latitude: number;
   longitude: number;
+  address: string;
+  createdAt: string;
 }
 
 export type MapPointDetailRes =

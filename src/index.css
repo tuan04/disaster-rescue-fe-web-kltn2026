@@ -16,16 +16,8 @@
 
   --font-sans: var(--font-family-base);
 
-  --text-caption: 0.75rem;
-  --text-caption--line-height: 1rem;
-  --text-body-sm: 0.875rem;
-  --text-body-sm--line-height: 1.25rem;
-  --text-body-md: 0.9375rem;
-  --text-body-md--line-height: 1.25rem;
-  --text-body: 1rem;
-  --text-body--line-height: 1.5rem;
-  --text-body-lg: 1.125rem;
-  --text-body-lg--line-height: 1.75rem;
+  --text-md: 0.9375rem;
+  --text-md--line-height: 1.25rem;
   --text-title-sm: 1.25rem;
   --text-title-sm--line-height: 1.75rem;
   --text-title-md: 1.375rem;
@@ -40,11 +32,11 @@
 
 :root {
   --primary: #171d2f;
-  --secondary: #00c5d3;
+  --secondary: #10b4c0;
   --background: #f9fafb;
   --surface: #ffffff;
   --danger: #d9383a;
-  --success: #2e7d32;
+  --success: #10ce19;
   --warning: #f59e0b;
 
   --text: #111827;
@@ -57,11 +49,11 @@
 
 .dark {
   --primary: #171d2f;
-  --secondary: #00c5d3;
+  --secondary: #10b4c0;
   --background: #121212;
   --surface: #12183b;
   --danger: #d9383a;
-  --success: #2e7d32;
+  --success: #10ce19;
   --warning: #f59e0b;
 
   --text: #ffffff;
@@ -75,4 +67,26 @@ body {
   background: var(--background);
   color: var(--text);
   font-family: var(--font-family-base);
+}
+
+.leaflet-control-zoom {
+  border: 0 !important;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+}
+
+.leaflet-control-zoom a {
+  border: 0 !important;
+  background: rgb(0 0 0 / 55%) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(8px);
+}
+
+.leaflet-control-zoom a:first-child {
+  border-bottom: 1px solid rgb(255 255 255 / 16%) !important;
+}
+
+.leaflet-control-zoom a:hover,
+.leaflet-control-zoom a:focus {
+  background: rgb(0 0 0 / 72%) !important;
+  color: #ffffff !important;
 }

@@ -1,31 +1,67 @@
 import L from "leaflet";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import { useEffect } from "react";
 
 import PointDetail from "@/components/ui/map/PointDetail";
-import type { PointType } from "@/types/dispatch";
+import {
+  getHazardIconDetails,
+  getSafePointIconDetails,
+  getWarehouseIconDetails,
+  sosCompletedIconSvg,
+} from "@/contants/mapPointMeta";
+import type { PointType, SosMapPointRes } from "@/types/mapPoint";
 import type { RescueMapProps } from "../RescueMap";
-import { getHazardIconDetails } from "../hazardIconMeta";
-import { getPointTypeDetails } from "../mapPointMeta";
 
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
-type IconPointType = Exclude<PointType, "SOS">;
+const clusteredPointTypes: PointType[] = [
+  "SOS",
+  "HAZARD",
+  "SAFE_ZONE",
+  "WARE_HOUSE",
+];
 
-const pointIconSvg: Record<IconPointType, string> = {
-  SAFE_ZONE:
-    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-white"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
-  HAZARD:
-    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-white"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-  WARE_HOUSE:
-    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-white"><path d="M3 21h18"/><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1"/><path d="M4 21V13m16 8V13"/><path d="M9 21h6v-4H9v4Z"/></svg>',
+const clusterColors: Record<PointType, string> = {
+  SOS: "var(--danger)",
+  HAZARD: "var(--warning)",
+  SAFE_ZONE: "var(--success)",
+  WARE_HOUSE: "var(--secondary)",
 };
 
-const createSosIcon = () =>
-  L.divIcon({
+const createSosIcon = (point: SosMapPointRes) => {
+  const status = point.status.toUpperCase();
+  const priority = point.priority.toUpperCase();
+
+  if (status === "COMPLETED") {
+    return L.divIcon({
+      html: `
+        <div class="relative flex h-8 w-8 items-center justify-center">
+          <div class="relative flex h-6 w-6 items-center justify-center rounded-full border-[3px] border-white bg-success text-white shadow-lg">
+            ${sosCompletedIconSvg}
+          </div>
+        </div>
+      `,
+      className: "custom-div-icon",
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+      popupAnchor: [0, -16],
+    });
+  }
+
+  const color = priority === "HIGH" ? "var(--danger)" : "var(--warning)";
+  const pingElement =
+    status === "PENDING"
+      ? `<span class="absolute h-10 w-10 rounded-full border-[3px] opacity-70 animate-ping" style="border-color:${color};"></span>`
+      : "";
+
+  return L.divIcon({
     html: `
-      <div class="relative flex h-12 w-12 items-center justify-center">
-        <span class="absolute h-10 w-10 rounded-full border-[3px] border-red-500 opacity-70 animate-ping"></span>
-        <div class="h-full w-full rounded-full border-[5px] border-white bg-red-500"></div>
+      <div class="relative flex h-10 w-10 items-center justify-center">
+        ${pingElement}
+        <div class="h-full w-full rounded-full border-[5px] border-white shadow-lg" style="background-color:${color};"></div>
       </div>
     `,
     className: "custom-div-icon",
@@ -33,11 +69,24 @@ const createSosIcon = () =>
     iconAnchor: [24, 24],
     popupAnchor: [0, -22],
   });
+};
 
-const hazardImageIconCache = new Map<string, L.DivIcon>();
+const userLocationIcon = L.divIcon({
+  html: `
+    <div class="relative flex h-8 w-8 items-center justify-center">
+      <span class="absolute h-8 w-8 rounded-full bg-blue-500/25 animate-ping"></span>
+      <div class="relative h-4 w-4 rounded-full border-[3px] border-white bg-blue-600 shadow-lg"></div>
+    </div>
+  `,
+  className: "custom-div-icon",
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+});
 
-const createHazardImageIcon = (iconUrl: string, label: string) => {
-  const cachedIcon = hazardImageIconCache.get(iconUrl);
+const mapImageIconCache = new Map<string, L.DivIcon>();
+
+const createMapImageIcon = (iconUrl: string, label: string) => {
+  const cachedIcon = mapImageIconCache.get(iconUrl);
 
   if (cachedIcon) {
     return cachedIcon;
@@ -49,7 +98,7 @@ const createHazardImageIcon = (iconUrl: string, label: string) => {
         <img
           src="${iconUrl}"
           alt="${label}"
-          style="width:30px;height:30px;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(15, 23, 42, 0.35));"
+          style="width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(15, 23, 42, 0.35));"
         />
       </div>
     `,
@@ -59,55 +108,107 @@ const createHazardImageIcon = (iconUrl: string, label: string) => {
     popupAnchor: [0, -28],
   });
 
-  hazardImageIconCache.set(iconUrl, icon);
+  mapImageIconCache.set(iconUrl, icon);
   return icon;
 };
 
 const createCustomIcon = (point: RescueMapProps["points"][number]) => {
   if (point.pointType === "SOS") {
-    return createSosIcon();
+    return createSosIcon(point);
   }
 
   if (point.pointType === "HAZARD") {
-    const hazardIconDetails = getHazardIconDetails(point);
+    const hazardIconDetails = getHazardIconDetails(point)!;
 
-    if (hazardIconDetails) {
-      return createHazardImageIcon(
-        hazardIconDetails.iconUrl,
-        hazardIconDetails.label,
-      );
-    }
+    return createMapImageIcon(
+      hazardIconDetails.iconUrl,
+      hazardIconDetails.label,
+    );
   }
 
-  const type = point.pointType;
-  const { markerClassName } = getPointTypeDetails(type);
+  if (point.pointType === "SAFE_ZONE") {
+    const safePointIconDetails = getSafePointIconDetails(point);
 
-  return L.divIcon({
-    html: `
-      <div class="relative flex items-center justify-center w-8 h-8">
-        <div class="relative flex items-center justify-center w-8 h-8 rounded-full ${markerClassName} border-2 border-white shadow-lg text-white">
-          ${pointIconSvg[type]}
-        </div>
-      </div>
-    `,
-    className: "custom-div-icon",
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-    popupAnchor: [0, -16],
-  });
+    return createMapImageIcon(
+      safePointIconDetails.iconUrl,
+      safePointIconDetails.label,
+    );
+  }
+
+  if (point.pointType === "WARE_HOUSE") {
+    const warehouseIconDetails = getWarehouseIconDetails();
+
+    return createMapImageIcon(
+      warehouseIconDetails.iconUrl,
+      warehouseIconDetails.label,
+    );
+  }
 };
+
+const createClusterIcon =
+  (color: string) => (cluster: { getChildCount: () => number }) =>
+    L.divIcon({
+      html: `
+        <div style="
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          width:42px;
+          height:42px;
+          border-radius:9999px;
+          border:4px solid #ffffff;
+          background:${color};
+          color:#ffffff;
+          font-size:14px;
+          font-weight:800;
+          box-shadow:0 8px 18px rgba(15, 23, 42, 0.3);
+        ">
+          ${cluster.getChildCount()}
+        </div>
+      `,
+      className: "map-point-cluster-icon",
+      iconSize: [42, 42],
+      iconAnchor: [21, 21],
+    });
 
 export default function LeafletRescueMap({
   center,
   points,
   zoom = 13,
+  userLocation,
   onPointDetailRequest,
   selectedPointDetail,
   detailLoading = false,
   detailError = null,
 }: RescueMapProps) {
+  const renderPointMarker = (point: RescueMapProps["points"][number]) => {
+    const pointDetail =
+      selectedPointDetail?.id === point.id ? selectedPointDetail : null;
+
+    return (
+      <Marker
+        key={point.id}
+        position={[point.latitude, point.longitude]}
+        icon={createCustomIcon(point)}
+        eventHandlers={{
+          click: () => onPointDetailRequest?.(point.id),
+        }}
+      >
+        <Popup minWidth={360} maxWidth={500}>
+          <PointDetail
+            className="w-96"
+            point={pointDetail}
+            loading={detailLoading && !pointDetail}
+            error={detailError}
+          />
+        </Popup>
+      </Marker>
+    );
+  };
+
   return (
     <MapContainer
+      zoomControl={false}
       center={center}
       zoom={zoom}
       scrollWheelZoom={true}
@@ -118,30 +219,50 @@ export default function LeafletRescueMap({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {points.map((point) => {
-        const pointDetail =
-          selectedPointDetail?.id === point.id ? selectedPointDetail : null;
+      {userLocation ? (
+        <>
+          <FlyToLocation position={userLocation} zoom={16} />
+          <Marker position={userLocation} icon={userLocationIcon} />
+        </>
+      ) : null}
+
+      {clusteredPointTypes.map((pointType) => {
+        const typedPoints = points.filter(
+          (point) => point.pointType === pointType,
+        );
+
+        if (typedPoints.length === 0) {
+          return null;
+        }
 
         return (
-          <Marker
-            key={point.id}
-            position={[point.latitude, point.longitude]}
-            icon={createCustomIcon(point)}
-            eventHandlers={{
-              click: () => onPointDetailRequest?.(point.id),
-            }}
+          <MarkerClusterGroup
+            key={pointType}
+            chunkedLoading
+            iconCreateFunction={createClusterIcon(clusterColors[pointType])}
           >
-            <Popup>
-              <PointDetail
-                point={pointDetail}
-                loading={detailLoading && !pointDetail}
-                error={detailError}
-                className="min-w-[260px]"
-              />
-            </Popup>
-          </Marker>
+            {typedPoints.map(renderPointMarker)}
+          </MarkerClusterGroup>
         );
       })}
     </MapContainer>
   );
+}
+
+function FlyToLocation({
+  position,
+  zoom,
+}: {
+  position: [number, number];
+  zoom: number;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    map.flyTo(position, Math.max(map.getZoom(), zoom), {
+      duration: 0.8,
+    });
+  }, [map, position, zoom]);
+
+  return null;
 }

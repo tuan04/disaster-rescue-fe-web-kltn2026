@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaBell, FaSignOutAlt, FaUser, FaUserCircle } from "react-icons/fa";
 import { FiSidebar } from "react-icons/fi";
 import Button from "../common/Button";
-import Popover from "../common/popover";
+import Popover from "../common/Popover";
 
 type HeaderProps = {
   collapsed: boolean;

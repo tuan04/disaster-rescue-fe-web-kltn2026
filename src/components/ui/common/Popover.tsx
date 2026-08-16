@@ -14,6 +14,7 @@ type PopoverProps = {
   children: ReactNode;
   className?: string;
   offset?: number;
+  horizontalOffset?: number;
 };
 
 export default function Popover({
@@ -23,6 +24,7 @@ export default function Popover({
   children,
   className = "",
   offset = 8,
+  horizontalOffset = 0,
 }: PopoverProps) {
   const triggerRef = useRef<HTMLSpanElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -60,7 +62,7 @@ export default function Popover({
           : Math.max(margin, triggerRect.top - panelHeight - offset);
 
       const left = Math.min(
-        Math.max(margin, triggerRect.right - panelWidth),
+        Math.max(margin, triggerRect.right - panelWidth + horizontalOffset),
         window.innerWidth - panelWidth - margin,
       );
 
@@ -75,7 +77,7 @@ export default function Popover({
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [offset, open]);
+  }, [horizontalOffset, offset, open]);
 
   return (
     <>

@@ -1,104 +1,228 @@
-import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
-import type { ApiResponse, ErrorResponse } from '@/types/response';
+import axios, {
+  type AxiosError,
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type InternalAxiosRequestConfig,
+} from 'axios';
+import { store } from '@/store/store';
+import { setAuth, logout } from '@/store/authSlice';
 
-// Lớp đại diện cho lỗi từ API
-export class ApiError extends Error {
-    status?: number;
-    code?: string;
-    details?: Record<string, string>;
-    data?: any;
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL ?? '';
 
-    constructor(message: string, status?: number, code?: string, details?: Record<string, string>, data?: any) {
-        super(message);
-        this.name = 'ApiError';
-        this.status = status;
-        this.code = code;
-        this.details = details;
-        this.data = data;
-    }
-}
-
-const api: AxiosInstance = axios.create({
-    baseURL: (import.meta.env.VITE_BACKEND_URL as string),
-    timeout: 10000,
-    headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    },
+const axiosClient: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 15000,
+  withCredentials: true,
+  headers: {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  },
 });
 
-// Set token cho request nếu có
-api.interceptors.request.use(
-    (config: InternalAxiosRequestConfig) => {
-        //viết code tại đây
+// -------------------------------
+// 1) Biến toàn cục cho refresh token
+// -------------------------------
+let isRefreshing = false;
 
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
+type FailedRequest = {
+  resolve: (token?: string | null) => void;
+  reject: (error?: unknown) => void;
+};
+
+let failedQueue: FailedRequest[] = [];
+
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(token ?? null);
     }
+  });
+
+  failedQueue = [];
+};
+
+// Axios instance riêng cho việc refresh token
+// Không dùng axiosClient để tránh chạy lại interceptor và gây vòng lặp
+const refreshClient = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  },
+});
+
+// -------------------------------
+// 2) Request Interceptor
+// Gắn Authorization Bearer từ Redux store
+// -------------------------------
+axiosClient.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = store.getState().auth.accessToken;
+
+    if (token) {
+      config.headers = config.headers ?? {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error),
 );
 
-// Response Interceptor: Xử lý tập trung lỗi phản hồi
-api.interceptors.response.use(
-    (response: AxiosResponse) => {
-        return response;
-    },
-    (error) => {
-        if (axios.isAxiosError(error)) {
-            if (error.code === 'ECONNABORTED') {
-                return Promise.reject(new ApiError('Máy chủ phản hồi quá lâu', 408, 'TIMEOUT'));
-            }
+// -------------------------------
+// 3) Response Interceptor
+// Xử lý 401 Unauthorized bằng refresh token
+// -------------------------------
+axiosClient.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as
+      | (InternalAxiosRequestConfig & { _retry?: boolean })
+      | undefined;
 
-            if (error.response) {
-                const { status } = error.response;
-                const errorData = error.response.data as ErrorResponse;
+    console.log(originalRequest);
 
-                // Tự động xóa token nếu lỗi 401
-                if (status === 401) {
-                    //Viết code vào đây
-                }
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
 
-                const errorMessage = errorData?.message || error.message || 'Đã xảy ra lỗi hệ thống';
-                const errorCode = errorData?.code;
-                const errorDetails = errorData?.details;
+    const status = error.response?.status;
+    const url = originalRequest.url ?? '';
 
-                return Promise.reject(new ApiError(errorMessage, status, errorCode, errorDetails, errorData));
-            }
+    // Bỏ qua request refresh-token để tránh loop vô hạn
+    if ((status === 401 || status === 403) && !url.includes('auth/refresh-token')) {
+      // Ngăn vòng lặp infinite nếu refresh token cũng 401
+      originalRequest._retry = true;
 
-            else if (error.request) {
-                return Promise.reject(new ApiError('Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng.', 0, 'NETWORK_ERROR'));
-            }
+      // Nếu đang refresh thì đưa request hiện tại vào hàng đợi
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({
+            resolve: (newToken) => {
+              if (!originalRequest.headers) {
+                originalRequest.headers = {};
+              }
+
+              if (newToken) {
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              }
+
+              // Retry lại request gốc sau khi refresh thành công
+              resolve(
+                axiosClient({
+                  ...originalRequest,
+                  headers: {
+                    ...originalRequest.headers,
+                    ...(newToken
+                      ? { Authorization: `Bearer ${newToken}` }
+                      : {}),
+                  },
+                }),
+              );
+            },
+            reject,
+          });
+        });
+      }
+
+      // Không đang refresh -> bắt đầu flow refresh token
+      isRefreshing = true;
+
+      try {
+        const refreshResponse = await refreshClient.post('/auth/refresh-token');
+
+        console.log(refreshResponse);
+
+        const newAccessToken = refreshResponse?.data?.accessToken;
+
+        if (!newAccessToken) {
+          throw new Error('Refresh token failed: accessToken is missing');
         }
 
-        return Promise.reject(new ApiError(error.message || 'Đã xảy ra lỗi', 500, 'UNKNOWN_ERROR'));
+        // Cập nhật Redux store với accessToken mới
+        store.dispatch(
+          setAuth({
+            accessToken: newAccessToken,
+            user: refreshResponse?.data?.userInfoResponse ?? null,
+          }),
+        );
+
+        // Cập nhật Authorization cho request gốc và giải phóng hàng đợi
+        if (!originalRequest.headers) {
+          originalRequest.headers = {};
+        }
+
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
+        processQueue(null, newAccessToken);
+
+        return axiosClient({
+          ...originalRequest,
+          headers: {
+            ...originalRequest.headers,
+            Authorization: `Bearer ${newAccessToken}`,
+          },
+        });
+      } catch (refreshError) {
+        // Refresh token thất bại => logout + redirect login
+        store.dispatch(logout());
+        processQueue(refreshError, null);
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
+
+    return Promise.reject(error);
+  },
 );
 
-// Các phương thức tiện ích bọc lại Axios để sử dụng dễ dàng hơn với kiểu trả về ApiResponse
-export const get = async <T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
-    const response = await api.get<ApiResponse<T>>(url, config);
-    return response.data;
+// -------------------------------
+// 4) Các helper request
+// -------------------------------
+export const request = async <T>(config: AxiosRequestConfig): Promise<T> => {
+  const response = await axiosClient.request<T>(config);
+  return response.data;
 };
 
-export const post = async <T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
-    const response = await api.post<ApiResponse<T>>(url, data, config);
-    return response.data;
+export const get = async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
+  const response = await axiosClient.get<T>(url, config);
+  return response.data;
 };
 
-export const put = async <T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
-    const response = await api.put<ApiResponse<T>>(url, data, config);
-    return response.data;
+export const post = async <T>(
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig,
+): Promise<T> => {
+  const response = await axiosClient.post<T>(url, data, config);
+  return response.data;
 };
 
-export const patch = async <T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
-    const response = await api.patch<ApiResponse<T>>(url, data, config);
-    return response.data;
+export const put = async <T>(
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig,
+): Promise<T> => {
+  const response = await axiosClient.put<T>(url, data, config);
+  return response.data;
 };
 
-export const del = async <T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
-    const response = await api.delete<ApiResponse<T>>(url, config);
-    return response.data;
+export const patch = async <T>(
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig,
+): Promise<T> => {
+  const response = await axiosClient.patch<T>(url, data, config);
+  return response.data;
 };
 
-export default api;
+export const del = async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
+  const response = await axiosClient.delete<T>(url, config);
+  return response.data;
+};
+
+export default axiosClient;

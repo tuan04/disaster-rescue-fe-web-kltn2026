@@ -4,7 +4,7 @@ import type { ApiResponse } from '@/types/response';
 
 
 export const loginApi = async (payload: LoginRequest) => {
-  const response = await axiosClient.post<ApiResponse<LoginResponse>>('/auth/login', payload, {
+  const response = await axiosClient.post<ApiResponse<LoginResponse>>('/v1/auth/login', payload, {
     headers: {
       'X-Client-Type': 'WEB',
     },
@@ -16,6 +16,11 @@ export const loginApi = async (payload: LoginRequest) => {
 
 
 export const refreshToken = async () => {
-  const response = await axiosClient.post<ApiResponse<LoginResponse>>('/auth/refresh-token');
+  const response = await axiosClient.post<ApiResponse<LoginResponse>>('/v1/auth/refresh-token');
   return response.data.data;
+};
+
+export const logoutApi = async () => {
+  const response = await axiosClient.post<ApiResponse<null>>('/v1/auth/logout');
+  return response.data;
 };

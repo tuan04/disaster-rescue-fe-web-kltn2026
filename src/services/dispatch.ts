@@ -1,9 +1,10 @@
-import { get } from "@/services/api";
+import { get } from "@/services/axiosClient";
 import type {
   MapPointDetailRes,
   MapPointFilterRequest,
   MapPointRes,
 } from "@/types/mapPoint";
+import type { ApiResponse } from "@/types/response";
 
 type MapPointArrayFilterKey = Exclude<
   keyof MapPointFilterRequest,
@@ -42,7 +43,7 @@ const createMapPointFilterParams = (filter: MapPointFilterRequest) => {
 export const getAllMapPoints = async (
   filter: MapPointFilterRequest = {},
 ): Promise<MapPointRes[]> => {
-  const response = await get<MapPointRes[]>("/v1/map-points", {
+  const response = await get<ApiResponse<MapPointRes[]>>("/v1/map-points", {
     params: createMapPointFilterParams(filter),
   });
   return response.data;
@@ -51,6 +52,6 @@ export const getAllMapPoints = async (
 export const getMapPointDetail = async (
   id: string,
 ): Promise<MapPointDetailRes> => {
-  const response = await get<MapPointDetailRes>(`/v1/map-points/${id}`);
+  const response = await get<ApiResponse<MapPointDetailRes>>(`/v1/map-points/${id}`);
   return response.data;
 };

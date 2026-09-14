@@ -16,6 +16,9 @@ import {
   safePointTypeLabel,
 } from "@/contants/mapPointLables";
 import { getAllMapPoints, getMapPointDetail } from "@/services/dispatch";
+import { getActiveTeamLocations } from "@/services/campaignTeam";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
 import type {
   EmergencyLevel,
   HazardType,
@@ -26,6 +29,7 @@ import type {
   RequestStatus,
   SafePointType,
 } from "@/types/mapPoint";
+import type { TeamLocation } from "@/types/teamLocation";
 
 const defaultPosition: [number, number] = [16.059432, 108.223547];
 
@@ -140,6 +144,7 @@ const FilterPopoverHeader = ({
 );
 
 export default function MapPage() {
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const [selectedPointId, setSelectedPointId] = useState<string | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
   const [postingTimeFilterOpen, setPostingTimeFilterOpen] = useState(false);
@@ -149,6 +154,7 @@ export default function MapPage() {
   const [mapPointFilter, setMapPointFilter] = useState<MapPointFilterRequest>(
     {},
   );
+  const [showTeamLocations, setShowTeamLocations] = useState(true);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(
     null,
   );
@@ -161,6 +167,14 @@ export default function MapPage() {
     retry: 1,
   });
 
+  const { data: teamLocations } = useQuery<TeamLocation[]>({
+    queryKey: ["activeTeamLocations"],
+    queryFn: getActiveTeamLocations,
+    enabled: isAuthenticated,
+    refetchInterval: 10000,
+    retry: 1,
+  });
+
   const detailQuery = useQuery<MapPointDetailRes, Error>({
     queryKey: ["mapPointDetail", selectedPointId],
     queryFn: () => getMapPointDetail(selectedPointId!),
@@ -168,7 +182,9 @@ export default function MapPage() {
     retry: 1,
   });
 
-  const activeFilterCount = getSelectedFilterCount(mapPointFilter);
+  const activeFilterCount =
+    getSelectedFilterCount(mapPointFilter) +
+    (isAuthenticated && !showTeamLocations ? 1 : 0);
   const hasPostingTimeFilter =
     !!mapPointFilter.fromTime && !!mapPointFilter.toTime;
 
@@ -192,6 +208,7 @@ export default function MapPage() {
   const clearFilters = () => {
     setSelectedPostingTimeHours(null);
     setMapPointFilter({});
+    setShowTeamLocations(true);
   };
 
   const applyPostingTimeFilter = (hours: number) => {
@@ -333,6 +350,25 @@ export default function MapPage() {
                   })}
                 />
               </section>
+
+              {isAuthenticated ? (
+                <section>
+                  <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                    Lực lượng cứu hộ
+                  </h2>
+                  <FieldGroup
+                    className="grid gap-2"
+                    items={[
+                      <CheckboxOption
+                        key="show-team-locations"
+                        label="Hiển thị vị trí đội cứu hộ"
+                        checked={showTeamLocations}
+                        onChange={() => setShowTeamLocations((value) => !value)}
+                      />,
+                    ]}
+                  />
+                </section>
+              ) : null}
             </div>
           </div>
         </Popover>
@@ -393,6 +429,9 @@ export default function MapPage() {
       <RescueMap
         center={defaultPosition}
         points={data ?? []}
+        teamLocations={
+          isAuthenticated && showTeamLocations ? teamLocations ?? [] : []
+        }
         zoom={13}
         userLocation={userLocation}
         onPointDetailRequest={setSelectedPointId}

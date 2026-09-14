@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { FaBell, FaSignOutAlt, FaUser, FaUserCircle } from "react-icons/fa";
 import { FiSidebar } from "react-icons/fi";
 import Button from "../common/Button";
 import Popover from "../common/Popover";
+import { logoutApi } from "@/services/auth";
+import { logout } from "@/store/authSlice";
+import type { AppDispatch } from "@/store/store";
 
 type HeaderProps = {
   collapsed: boolean;
@@ -13,6 +17,19 @@ type HeaderProps = {
 export default function Header({ collapsed, onToggleSidebar }: HeaderProps) {
   const [accountOpen, setAccountOpen] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+
+  const handleLogout = async () => {
+    try {
+      await logoutApi();
+    } catch (error) {
+      console.error("Lỗi khi đăng xuất:", error);
+    } finally {
+      dispatch(logout());
+      setAccountOpen(false);
+      navigate("/", { replace: true });
+    }
+  };
 
   const accountItems = [
     {
@@ -28,7 +45,7 @@ export default function Header({ collapsed, onToggleSidebar }: HeaderProps) {
     {
       label: "Đăng xuất",
       icon: <FaSignOutAlt />,
-      onClick: () => navigate("/"),
+      onClick: handleLogout,
     },
   ];
 
@@ -52,7 +69,7 @@ export default function Header({ collapsed, onToggleSidebar }: HeaderProps) {
             className="gap-3 bg-white! text-primary! hover:bg-slate-200!"
             onClick={() => setAccountOpen((value) => !value)}
           >
-            <FaUser size={18}/>
+            <FaUser size={18} />
             <span className="hidden text-sm font-medium text-text sm:inline">Administrator</span>
           </Button>
         }

@@ -2,6 +2,7 @@ import L from "leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import { useEffect } from "react";
+import { FaAmbulance, FaPhoneAlt } from "react-icons/fa";
 
 import PointDetail from "@/components/ui/map/PointDetail";
 import {
@@ -171,9 +172,36 @@ const createClusterIcon =
       iconAnchor: [21, 21],
     });
 
+const createTeamIcon = (teamName?: string | null) =>
+  L.divIcon({
+    html: `
+      <div class="relative flex flex-col items-center justify-center">
+        <span class="absolute h-9 w-9 rounded-full bg-emerald-500/35 animate-ping"></span>
+        <div class="relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-emerald-600 text-white shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1 .4-1 1v10c0 .6.4 1 1 1h2"/>
+            <circle cx="7" cy="17" r="2"/>
+            <path d="M9 17h6"/>
+            <circle cx="17" cy="17" r="2"/>
+          </svg>
+        </div>
+        ${
+          teamName
+            ? `<div class="mt-1 whitespace-nowrap rounded-md bg-slate-900/85 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-md backdrop-blur-xs">${teamName}</div>`
+            : ""
+        }
+      </div>
+    `,
+    className: "custom-div-icon",
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -20],
+  });
+
 export default function LeafletRescueMap({
   center,
   points,
+  teamLocations = [],
   zoom = 13,
   userLocation,
   onPointDetailRequest,
@@ -225,6 +253,71 @@ export default function LeafletRescueMap({
           <Marker position={userLocation} icon={userLocationIcon} />
         </>
       ) : null}
+
+      {teamLocations.map((team, index) => {
+        const teamName =
+          team.team_name || team.teamName || `Đội cứu hộ ${index + 1}`;
+        const leaderPhone = team.leaderPhone;
+        return (
+          <Marker
+            key={`team-${index}-${team.latitude}-${team.longitude}`}
+            position={[team.latitude, team.longitude]}
+            icon={createTeamIcon(teamName)}
+          >
+            <Popup minWidth={260} maxWidth={320}>
+              <div className="p-1 font-sans text-slate-800">
+                <div className="mb-2 flex items-center gap-2 border-b border-slate-100 pb-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-base font-bold text-emerald-700">
+                    <FaAmbulance size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold leading-tight text-slate-900">
+                      {teamName}
+                    </h3>
+                    <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                      Đội cứu hộ đang trực
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1.5 text-xs text-slate-600">
+                  {leaderPhone ? (
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500">Số điện thoại:</span>
+                      <a
+                        href={`tel:${leaderPhone}`}
+                        className="flex items-center gap-1.5 font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+                      >
+                        <FaPhoneAlt size={12} />
+                        <span>{leaderPhone}</span>
+                      </a>
+                    </div>
+                  ) : null}
+                  {team.speed !== undefined && team.speed !== null ? (
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500">Tốc độ:</span>
+                      <span className="font-medium text-slate-700">
+                        {team.speed} km/h
+                      </span>
+                    </div>
+                  ) : null}
+                  {team.recordedAt ? (
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500">Cập nhật:</span>
+                      <span className="font-medium text-slate-700">
+                        {new Date(team.recordedAt).toLocaleTimeString("vi-VN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </Popup>
+          </Marker>
+        );
+      })}
 
       {clusteredPointTypes.map((pointType) => {
         const typedPoints = points.filter(

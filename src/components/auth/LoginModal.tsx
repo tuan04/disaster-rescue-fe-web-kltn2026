@@ -85,10 +85,12 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
       onClose();
       navigate('/admin', { replace: true });
     } catch (error: unknown) {
+      const axiosMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
       const message =
-        error instanceof Error
+        axiosMessage ||
+        (error instanceof Error
           ? error.message
-          : 'Đăng nhập thất bại. Vui lòng thử lại.';
+          : 'Đăng nhập thất bại. Vui lòng thử lại.');
 
       setErrorMessage(message);
     } finally {

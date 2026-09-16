@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 
 import LandingLayout from '@/layouts/LandingLayout';
 import MapLayout from '@/layouts/MapLayout';
@@ -12,6 +13,7 @@ import MapPage from '@/pages/public/MapPage';
 import Dashboard from '@/pages/admin/Dashboard';
 import Users from '@/pages/admin/Users';
 import Reports from '@/pages/admin/Reports';
+import StrategicPoints from '@/pages/admin/StrategicPoints';
 import { login } from '@/store/authSlice';
 import type { AppDispatch, RootState } from '@/store/store';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -85,6 +87,7 @@ const router = createBrowserRouter([
       { index: true, element: <Dashboard /> },
       { path: 'users', element: <Users /> },
       { path: 'reports', element: <Reports /> },
+      { path: 'strategic-points', element: <StrategicPoints /> },
     ],
   },
   {
@@ -98,6 +101,13 @@ export default function App() {
     <>
       <AuthBootstrap />
       <RouterProvider router={router} />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: { borderRadius: '10px', background: '#334155', color: '#fff' },
+        }}
+      />
     </>
   );
 }

@@ -4,11 +4,21 @@ import { IoClose } from "react-icons/io5";
 type ModalProps = {
   open: boolean;
   title?: string;
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
   children: ReactNode;
   onClose: () => void;
 };
 
-export default function Modal({ open, title, children, onClose }: ModalProps) {
+const modalSizeClass: Record<NonNullable<ModalProps["size"]>, string> = {
+  sm: "max-w-sm",
+  md: "max-w-md",
+  lg: "max-w-lg",
+  xl: "max-w-xl",
+  "2xl": "max-w-2xl",
+  "3xl": "max-w-3xl",
+};
+
+export default function Modal({ open, title, size = "md", children, onClose }: ModalProps) {
   useEffect(() => {
     if (!open) return;
 
@@ -34,7 +44,7 @@ export default function Modal({ open, title, children, onClose }: ModalProps) {
       />
 
       <section
-        className="relative w-full max-w-md rounded-lg bg-surface p-6 text-text shadow-xl"
+        className={`relative w-full ${modalSizeClass[size]} max-h-[90vh] overflow-y-auto rounded-lg bg-surface p-6 text-text shadow-xl`}
         role="dialog"
         aria-modal="true"
         aria-label={title}

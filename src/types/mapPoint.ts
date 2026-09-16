@@ -26,6 +26,73 @@ export interface MapPointFilterRequest {
   toTime?: string;
 }
 
+export interface StrategicPointsFilterRequest {
+  pointType?: string;
+  locationId?: string;
+  hazardType?: HazardType;
+  safePointType?: SafePointType;
+  fromTime?: string;
+  toTime?: string;
+}
+
+export interface MapPointRequest {
+  address: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface CreateWarehouseRequest {
+  name: string;
+  managerPhone?: string;
+  mapPoint: MapPointRequest;
+}
+
+export interface CreateSafePointRequest {
+  name: string;
+  safePointType: SafePointType;
+  contactPhone?: string;
+  mapPoint: MapPointRequest;
+}
+
+export interface CreateHazardReportRequest {
+  hazardType: HazardType;
+  description?: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface UpdateWarehouseRequest {
+  name?: string;
+  managerPhone?: string;
+  isActive?: boolean;
+}
+
+export interface UpdateSafePointRequest {
+  name?: string;
+  safePointType?: SafePointType;
+  contactPhone?: string;
+  isActive?: boolean;
+}
+
+export interface UpdateHazardReportRequest {
+  hazardType?: HazardType;
+  description?: string;
+  status?: HazardStatus;
+  imageUrls?: string[];
+}
+
+export interface SpringPageResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
 export interface BaseMapPointRes {
   id: string; // UUID dạng chuỗi
   pointType: PointType;

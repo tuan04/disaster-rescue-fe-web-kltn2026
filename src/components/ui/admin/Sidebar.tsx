@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { FaFileAlt, FaHome, FaMapMarkedAlt, FaTachometerAlt, FaUsers } from "react-icons/fa";
+import { FaFileAlt, FaHome, FaLayerGroup, FaMapMarkedAlt, FaTachometerAlt, FaUsers } from "react-icons/fa";
 
 type SidebarProps = {
   collapsed: boolean;
@@ -7,6 +7,7 @@ type SidebarProps = {
 
 const navItems = [
   { key: "dashboard", label: "Tổng quan", path: "/admin", icon: FaTachometerAlt, end: true },
+  { key: "zones", label: "Quản lý khu vực", path: "/admin/zones", icon: FaLayerGroup },
   { key: "strategic-points", label: "Điểm chiến lược", path: "/admin/strategic-points", icon: FaMapMarkedAlt },
   { key: "users", label: "Quản lý người dùng", path: "/admin/users", icon: FaUsers },
   { key: "reports", label: "Báo cáo cứu hộ", path: "/admin/reports", icon: FaFileAlt },

@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import L from "leaflet";
-import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import {
   FaCampground,
   FaExclamationTriangle,
@@ -14,11 +12,9 @@ import {
   FaUniversity,
   FaWarehouse,
 } from "react-icons/fa";
-
-import "leaflet/dist/leaflet.css";
-
 import { AdminButton } from "@/components/ui/admin/AdminUi";
 import Modal from "@/components/ui/common/Modal";
+import GisBoundaryMap from "@/components/admin/GisBoundaryMap";
 import { hazardTypeLabel, safePointTypeLabel } from "@/contants/mapPointLables";
 import {
   createHazardReport,
@@ -52,46 +48,6 @@ const reverseGeocode = async (lat: number, lon: number): Promise<string> => {
   } catch { /* ignore */ }
   return "";
 };
-
-// ---------- Custom marker icon ----------
-const pinIcon = L.divIcon({
-  html: `
-    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" fill="none">
-        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#0891b2" stroke="#fff" stroke-width="1.5"/>
-        <circle cx="12" cy="9" r="3" fill="#fff"/>
-      </svg>
-    </div>
-  `,
-  className: "custom-pin-icon",
-  iconSize: [40, 40],
-  iconAnchor: [20, 40],
-});
-
-// ---------- Map sub-components ----------
-
-/** Fly the map to a new position */
-function FlyToPosition({ position }: { position: [number, number] }) {
-  const map = useMap();
-  useEffect(() => {
-    map.flyTo(position, Math.max(map.getZoom(), 15), { duration: 0.8 });
-  }, [map, position]);
-  return null;
-}
-
-/** Listen for clicks on the map */
-function MapClickHandler({
-  onClick,
-}: {
-  onClick: (lat: number, lng: number) => void;
-}) {
-  useMapEvents({
-    click(e) {
-      onClick(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-}
 
 // ---------- Props ----------
 interface CreateStrategicPointModalProps {
@@ -426,50 +382,25 @@ export default function CreateStrategicPointModal({
           </div>
 
           {/* Interactive Map */}
-          <div className="overflow-hidden rounded-lg border border-slate-200 shadow-sm">
-            <div className="relative" style={{ height: 280 }}>
-              <MapContainer
-                center={mapCenter}
-                zoom={13}
-                scrollWheelZoom={true}
-                style={{ height: "100%", width: "100%" }}
-                zoomControl={true}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <MapClickHandler onClick={handleMapClick} />
-                <FlyToPosition position={mapCenter} />
-                {hasPin && (
-                  <Marker
-                    position={[latitude as number, longitude as number]}
-                    icon={pinIcon}
-                  />
-                )}
-              </MapContainer>
-
-              {/* Coordinate overlay badge */}
-              {hasPin && (
-                <div className="absolute bottom-2 left-2 z-[1000] rounded-md bg-slate-900/80 px-2.5 py-1.5 font-mono text-xs text-white backdrop-blur-sm">
-                  {(latitude as number).toFixed(5)}, {(longitude as number).toFixed(5)}
-                </div>
-              )}
-            </div>
-
-            {/* Hint bar */}
-            <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 text-xs text-slate-500">
-              <FaMapMarkerAlt size={10} className="shrink-0 text-cyan-600" />
-              {hasPin ? (
+          <GisBoundaryMap
+            pinPosition={hasPin ? [latitude as number, longitude as number] : null}
+            pinType={category}
+            flyToCenter={mapCenter}
+            onMapClick={handleMapClick}
+            height={280}
+            hideHeader={true}
+            showCoordinateBadge={true}
+            hintText={
+              hasPin ? (
                 <span>
                   <strong className="text-slate-700">Đã ghim vị trí.</strong>{" "}
                   Nhấp vào bản đồ để đổi vị trí hoặc tìm kiếm địa chỉ ở trên.
                 </span>
               ) : (
                 <span>Nhấp vào bản đồ để chọn vị trí hoặc tìm kiếm địa chỉ ở trên.</span>
-              )}
-            </div>
-          </div>
+              )
+            }
+          />
 
           {/* ===== Category-specific fields ===== */}
           {category === "SAFE_ZONE" && (

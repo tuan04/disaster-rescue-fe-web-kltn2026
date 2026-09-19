@@ -14,7 +14,7 @@ import {
 } from "react-icons/fa";
 import { AdminButton } from "@/components/ui/admin/AdminUi";
 import Modal from "@/components/ui/common/Modal";
-import GisBoundaryMap from "@/components/admin/GisBoundaryMap";
+import GisBoundaryMap from "@/components/admin/GisMap";
 import { hazardTypeLabel, safePointTypeLabel } from "@/contants/mapPointLables";
 import {
   createHazardReport,

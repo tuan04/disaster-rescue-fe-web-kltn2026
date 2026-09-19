@@ -2,7 +2,7 @@ import { FaEdit } from "react-icons/fa";
 
 import { AdminButton, StatusTag } from "@/components/ui/admin/AdminUi";
 import Modal from "@/components/ui/common/Modal";
-import GisBoundaryMap from "@/components/admin/GisBoundaryMap";
+import GisBoundaryMap from "@/components/admin/GisMap";
 import { formatDate } from "@/helpers/dateHelper";
 import { locationStatusMeta, type LocationPageResponse } from "@/types/location";
 

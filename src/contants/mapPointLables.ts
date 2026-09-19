@@ -4,6 +4,7 @@ import type {
   PointType,
   RequestStatus,
   SafePointType,
+  RequestSource,
 } from "@/types/mapPoint";
 
 export const pointTypeLabel: Record<PointType, string> = {
@@ -23,6 +24,12 @@ export const emergencyLevelLabel: Record<EmergencyLevel, string> = {
   LOW: "Thấp",
   MEDIUM: "Trung bình",
   HIGH: "Cao",
+};
+
+export const requestSourceLabel: Record<RequestSource, string> = {
+  APP: "APP",
+  SOCIAL: "Mạng xã hội",
+  SMS: "Tin nhắn SMS",
 };
 
 export const hazardTypeLabel: Record<HazardType, string> = {

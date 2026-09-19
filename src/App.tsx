@@ -15,6 +15,7 @@ import Users from '@/pages/admin/Users';
 import Reports from '@/pages/admin/Reports';
 import StrategicPoints from '@/pages/admin/StrategicPoints';
 import ZoneManagement from '@/pages/admin/ZoneManagement';
+import CoordinateRescue from '@/pages/admin/CoordinateRescue';
 import { login } from '@/store/authSlice';
 import type { AppDispatch, RootState } from '@/store/store';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -86,6 +87,7 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Dashboard /> },
+      { path: 'coordinate-rescue', element: <CoordinateRescue /> },
       { path: 'users', element: <Users /> },
       { path: 'reports', element: <Reports /> },
       { path: 'strategic-points', element: <StrategicPoints /> },

@@ -3,10 +3,12 @@ import type {
   CreateHazardReportRequest,
   CreateSafePointRequest,
   CreateWarehouseRequest,
+  EmergencyLevel,
   HazardDetailRes,
   MapPointDetailRes,
   MapPointFilterRequest,
   MapPointRes,
+  RequestSource,
   SafePointDetailRes,
   SpringPageResponse,
   StrategicPointsFilterRequest,
@@ -195,6 +197,42 @@ export const updateHazardReport = async (
   const response = await patch<ApiResponse<HazardDetailRes>>(
     `/v1/map-points/hazard-reports/${id}`,
     data,
+  );
+  return response.data;
+};
+
+export interface PendingRescueRequestsFilter {
+  emergencyLevel?: EmergencyLevel;
+  source?: RequestSource;
+  page?: number;
+  size?: number;
+  sort?: string;
+}
+
+export const getPendingRescueRequests = async (
+  filter: PendingRescueRequestsFilter = {},
+): Promise<SpringPageResponse<MapPointDetailRes>> => {
+  const params = new URLSearchParams();
+
+  if (filter.page !== undefined) {
+    params.set("page", filter.page.toString());
+  }
+  if (filter.size !== undefined) {
+    params.set("size", filter.size.toString());
+  }
+  if (filter.sort) {
+    params.set("sort", filter.sort);
+  }
+  if (filter.emergencyLevel) {
+    params.set("emergencyLevel", filter.emergencyLevel);
+  }
+  if (filter.source) {
+    params.set("source", filter.source);
+  }
+
+  const response = await get<ApiResponse<SpringPageResponse<MapPointDetailRes>>>(
+    "/v1/map-points/rescue-requests-pending",
+    { params }
   );
   return response.data;
 };

@@ -13,7 +13,7 @@ import {
 
 import { AdminButton, StatusTag } from "@/components/ui/admin/AdminUi";
 import Modal from "@/components/ui/common/Modal";
-import GisBoundaryMap from "@/components/admin/GisBoundaryMap";
+import GisBoundaryMap from "@/components/admin/GisMap";
 import {
   pointTypeLabel,
   safePointTypeLabel,

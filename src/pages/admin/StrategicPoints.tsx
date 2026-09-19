@@ -26,7 +26,7 @@ import StrategicPointDetailModal, {
   getPointTypeIcon,
   type StrategicPointRow,
 } from "@/components/admin/StrategicPointDetailModal";
-import GisBoundaryMap, { type GisMapMarker } from "@/components/admin/GisBoundaryMap";
+import GisBoundaryMap, { type GisMapMarker } from "@/components/admin/GisMap";
 import {
   hazardTypeLabel,
   pointTypeLabel,
@@ -269,10 +269,10 @@ export default function StrategicPoints() {
           <AdminButton
             variant="link"
             size="sm"
-            icon={<FaEye size={12} />}
+            icon={<FaEye size={13} />}
             onClick={() => setSelectedPoint(record)}
           >
-            Chi tiết
+            Xem
           </AdminButton>
           {record.raw.pointType !== "SOS" && (
             <AdminButton

@@ -5,7 +5,7 @@ import { FaInfoCircle, FaCheckCircle } from "react-icons/fa";
 
 import { AdminButton } from "@/components/ui/admin/AdminUi";
 import Modal from "@/components/ui/common/Modal";
-import GisBoundaryMap from "@/components/admin/GisBoundaryMap";
+import GisBoundaryMap from "@/components/admin/GisMap";
 import { updateLocation } from "@/services/location";
 import { getUserNames } from "@/services/user";
 import type {
